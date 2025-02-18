@@ -1,0 +1,205 @@
+openapi: 3.0.1
+info:
+  title: Order Service API
+  description: API для управления заказами
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
+
+paths:
+  /orders:
+    post:
+      summary: Создание заказа
+      description: Создаёт новый заказ и возвращает его номер
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderDTO"
+      responses:
+        "200":
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Заказ №12345 создан"
+
+    get:
+      summary: Получение всех заказов
+      description: Возвращает список всех заказов
+      operationId: getAllOrders
+      responses:
+        "200":
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      summary: Получение заказа по ID
+      description: Возвращает заказ по идентификатору
+      operationId: getOrderById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Заказ найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Заказ не найден
+
+  /orders/filter:
+    get:
+      summary: Фильтрация заказов по дате и сумме
+      operationId: getFilteredOrders
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: minTotal
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+      responses:
+        "200":
+          description: Найденные заказы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/filter-without-product:
+    get:
+      summary: Заказы без указанного товара за период
+      operationId: getOrdersWithoutProductAndInPeriod
+      parameters:
+        - name: productName
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Найденные заказы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+components:
+  schemas:
+    OrderDTO:
+      type: object
+      properties:
+        orderNumber:
+          type: string
+        totalAmount:
+          type: number
+          format: double
+        orderDate:
+          type: string
+          format: date-time
+        customerName:
+          type: string
+        deliveryAddress:
+          type: string
+        paymentType:
+          type: string
+        deliveryType:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemDTO"
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        totalAmount:
+          type: number
+          format: double
+        orderDate:
+          type: string
+          format: date-time
+        customerName:
+          type: string
+        deliveryAddress:
+          type: string
+        paymentType:
+          type: string
+        deliveryType:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+
+    OrderItemDTO:
+      type: object
+      properties:
+        productSku:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        productSku:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double

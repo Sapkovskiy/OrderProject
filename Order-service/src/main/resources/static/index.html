@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Управление заказами</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .modal-dialog {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="container mt-4">
+<h2 class="mb-3">Управление заказами</h2>
+
+<div class="mb-3">
+    <button class="btn btn-primary" onclick="getAllOrders()">📦 Все заказы</button>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createOrderModal">➕ Создать заказ</button>
+</div>
+
+<div class="mb-3">
+    <input type="number" id="orderId" class="form-control d-inline w-auto" placeholder="ID заказа">
+    <button class="btn btn-secondary" onclick="getOrderById()">🔎 Поиск заказа</button>
+</div>
+
+<div class="mb-3">
+    <input type="date" id="filterDate" class="form-control d-inline w-auto">
+    <input type="number" id="filterMinTotal" class="form-control d-inline w-auto" placeholder="Мин. сумма">
+    <button class="btn btn-warning" onclick="getFilteredOrders()">🔍 Фильтр по дате и сумме</button>
+</div>
+
+<div class="mb-3">
+    <input type="text" id="filterProductName" class="form-control d-inline w-auto" placeholder="Имя товара">
+    <input type="date" id="filterStartDate" class="form-control d-inline w-auto">
+    <input type="date" id="filterEndDate" class="form-control d-inline w-auto">
+    <button class="btn btn-info" onclick="getOrdersWithoutProductAndInPeriod()">🔍 Фильтр по товару и периоду</button>
+</div>
+
+<!-- Модальное окно Создание заказа -->
+<div class="modal fade" id="createOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Создать заказ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="customerName" class="form-control mb-2" placeholder="Имя клиента">
+                <input type="text" id="deliveryAddress" class="form-control mb-2" placeholder="Адрес доставки">
+                <input type="text" id="paymentType" class="form-control mb-2" placeholder="Тип оплаты">
+                <input type="text" id="deliveryType" class="form-control mb-2" placeholder="Тип доставки">
+                <input type="number" id="totalAmount" class="form-control mb-2" placeholder="Общая сумма">
+                <h6>Добавить товар</h6>
+                <input type="text" id="productSku" class="form-control mb-2" placeholder="Артикул товара">
+                <input type="text" id="productName" class="form-control mb-2" placeholder="Название товара">
+                <input type="number" id="quantity" class="form-control mb-2" placeholder="Количество">
+                <input type="number" id="price" class="form-control mb-2" placeholder="Цена">
+                <button class="btn btn-secondary" onclick="addItem()">Добавить товар</button>
+                <ul id="itemsList" class="mt-2"></ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="createOrder()">Создать</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apiBase = "/orders";
+    let items = [];
+
+    async function getAllOrders() {
+        const response = await fetch(apiBase);
+        const orders = await response.json();
+        alert(JSON.stringify(orders, null, 2));
+    }
+
+    async function getOrderById() {
+        const id = document.getElementById("orderId").value;
+        const response = await fetch(`${apiBase}/${id ? id : ''}`);
+        const order = await response.json();
+        alert(JSON.stringify(order, null, 2));
+    }
+
+    async function getFilteredOrders() {
+        const date = document.getElementById("filterDate").value;
+        const minTotal = document.getElementById("filterMinTotal").value;
+        const response = await fetch(`${apiBase}/filter?date=${date}&minTotal=${minTotal}`);
+        const orders = await response.json();
+        alert(JSON.stringify(orders, null, 2));
+    }
+
+    async function getOrdersWithoutProductAndInPeriod() {
+        const productName = document.getElementById("filterProductName").value;
+        const startDate = document.getElementById("filterStartDate").value;
+        const endDate = document.getElementById("filterEndDate").value;
+        const response = await fetch(`${apiBase}/filter-without-product?productName=${productName}&startDate=${startDate}&endDate=${endDate}`);
+        const orders = await response.json();
+        alert(JSON.stringify(orders, null, 2));
+    }
+
+    function addItem() {
+        const sku = document.getElementById("productSku").value;
+        const name = document.getElementById("productName").value;
+        const quantity = document.getElementById("quantity").value;
+        const price = document.getElementById("price").value;
+        items.push({ productSku: sku, productName: name, quantity: parseInt(quantity), price: parseFloat(price) });
+        document.getElementById("itemsList").innerHTML += `<li>${name} (${quantity} шт. по ${price} руб.)</li>`;
+    }
+
+    async function createOrder() {
+        const order = {
+            orderNumber: "AUTO",
+            customerName: document.getElementById("customerName").value,
+            deliveryAddress: document.getElementById("deliveryAddress").value,
+            paymentType: document.getElementById("paymentType").value,
+            deliveryType: document.getElementById("deliveryType").value,
+            totalAmount: parseFloat(document.getElementById("totalAmount").value),
+            items: items
+        };
+        const response = await fetch(apiBase, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(order)
+        });
+        const result = await response.text();
+        alert(result);
+        items = [];
+        document.getElementById("itemsList").innerHTML = "";
+    }
+</script>
+</body>
+</html>
