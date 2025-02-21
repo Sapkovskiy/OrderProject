@@ -50,20 +50,28 @@ public class OrderService {
         Order order = OrderMapper.INSTANCE.toOrder(orderDTO);
         order.setOrderDate(LocalDate.now());
 
-        Order savedOrder = orderRepository.save(order);
-
-        // Гарантируем, что список не будет null
+        // Подготовка списка товаров
         List<OrderItem> orderItems = Optional.ofNullable(orderDTO.getItems())
-                .orElse(Collections.emptyList()) // Если null, подставляем пустой список
+                .orElse(Collections.emptyList())
                 .stream()
                 .map(itemDTO -> {
                     OrderItem item = OrderItemMapper.INSTANCE.toOrderItem(itemDTO);
-                    item.setOrderId(savedOrder.getId()); // Привязываем товар к заказу
+                    item.setOrderId(order.getId()); // Привязываем товар к заказу
                     return item;
                 })
                 .collect(Collectors.toList());
 
+        // Расчет суммы заказа
+        BigDecimal totalAmount = orderItems.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotalAmount(totalAmount);
+
+        Order savedOrder = orderRepository.save(order);
+        orderItems.forEach(item -> item.setOrderId(savedOrder.getId())); // Устанавливаем ID заказа для товаров
         orderItemRepository.saveAll(orderItems);
+
         return orderNumber;
     }
 

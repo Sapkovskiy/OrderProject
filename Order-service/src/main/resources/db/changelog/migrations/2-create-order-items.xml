@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="2" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="order_items" schemaName="public"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="order_items" schemaName="public">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_order_items_orders"
+                             references="public.orders(id)"/>
+            </column>
+            <column name="product_sku" type="VARCHAR(50)"/>
+            <column name="product_name" type="VARCHAR(255)"/>
+            <column name="quantity" type="INT"/>
+            <column name="price" type="DECIMAL(10,2)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

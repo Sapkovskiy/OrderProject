@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -10,34 +11,7 @@
         </sql>
     </changeSet>
 
-    <changeSet id="1" author="developer">
-        <createTable tableName="orders" schemaName="public">
-            <column name="id" type="SERIAL">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="order_number" type="VARCHAR(50)">
-                <constraints unique="true"/>
-            </column>
-            <column name="total_amount" type="DECIMAL(10,2)"/>
-            <column name="order_date" type="TIMESTAMP"/>
-            <column name="customer_name" type="VARCHAR(255)"/>
-            <column name="delivery_address" type="VARCHAR(255)"/>
-            <column name="payment_type" type="VARCHAR(50)"/>
-            <column name="delivery_type" type="VARCHAR(50)"/>
-        </createTable>
+    <include file="db/changelog/migrations/1-create-orders.xml"/>
+    <include file="db/changelog/migrations/2-create-order-items.xml"/>
 
-        <createTable tableName="order_items" schemaName="public">
-            <column name="id" type="SERIAL">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="order_id" type="INT">
-                <constraints nullable="false" foreignKeyName="fk_order_items_orders"
-                             references="public.orders(id)"/>
-            </column>
-            <column name="product_sku" type="VARCHAR(50)"/>
-            <column name="product_name" type="VARCHAR(255)"/>
-            <column name="quantity" type="INT"/>
-            <column name="price" type="DECIMAL(10,2)"/>
-        </createTable>
-    </changeSet>
 </databaseChangeLog>
